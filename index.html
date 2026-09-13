@@ -25,14 +25,13 @@
     }
 
     header {
-      background: #ffffff;
+      background: white;
       padding: 20px 30px;
       border-bottom: 1px solid #ddd;
 
       display: flex;
       justify-content: space-between;
       align-items: center;
-
       gap: 20px;
     }
 
@@ -47,10 +46,6 @@
       border-radius: 8px;
       width: 220px;
       outline: none;
-    }
-
-    .search:focus {
-      border-color: #777;
     }
 
     main {
@@ -90,17 +85,10 @@
 
       cursor: pointer;
       font-size: 14px;
-
-      transition: 0.2s;
     }
 
     .import-button:hover {
       background: #444;
-    }
-
-    .import-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
 
     .book-grid {
@@ -117,6 +105,8 @@
       padding: 12px;
       border-radius: 12px;
 
+      cursor: pointer;
+
       box-shadow:
         0 3px 10px rgba(0, 0, 0, 0.08);
 
@@ -126,10 +116,10 @@
     }
 
     .book:hover {
-      transform: translateY(-3px);
+      transform: translateY(-4px);
 
       box-shadow:
-        0 6px 18px rgba(0, 0, 0, 0.12);
+        0 8px 20px rgba(0, 0, 0, 0.13);
     }
 
     .cover {
@@ -138,8 +128,8 @@
       border-radius: 8px;
 
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
 
       font-size: 50px;
     }
@@ -159,14 +149,129 @@
 
     .empty-library {
       color: #777;
-      margin-top: 20px;
     }
+
+
+    /* ============================
+       EPUB READER
+    ============================ */
+
+    #readerScreen {
+      position: fixed;
+
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      background: #f8f7f2;
+
+      z-index: 9999;
+
+      display: none;
+      flex-direction: column;
+    }
+
+    .reader-header {
+      height: 60px;
+
+      background: white;
+
+      border-bottom: 1px solid #ddd;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 20px;
+
+      gap: 15px;
+    }
+
+    .reader-title {
+      font-weight: bold;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      flex: 1;
+
+      text-align: center;
+    }
+
+    .reader-button {
+      border: none;
+
+      background: #222;
+      color: white;
+
+      padding: 9px 14px;
+
+      border-radius: 7px;
+
+      cursor: pointer;
+    }
+
+    .reader-button:hover {
+      background: #444;
+    }
+
+    #viewer {
+      flex: 1;
+
+      width: 100%;
+
+      overflow: hidden;
+    }
+
+    .reader-controls {
+      height: 65px;
+
+      background: white;
+
+      border-top: 1px solid #ddd;
+
+      display: flex;
+
+      justify-content: center;
+      align-items: center;
+
+      gap: 20px;
+
+      padding: 10px;
+    }
+
+    .navigation-button {
+      border: none;
+
+      background: #222;
+      color: white;
+
+      padding: 11px 25px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .navigation-button:hover {
+      background: #444;
+    }
+
+
+    /* ============================
+       MOBILE
+    ============================ */
 
     @media (max-width: 600px) {
 
       header {
         padding: 15px;
+
         flex-direction: column;
+
         align-items: stretch;
       }
 
@@ -187,8 +292,9 @@
       }
 
       .library-header {
-        align-items: stretch;
         flex-direction: column;
+
+        align-items: stretch;
       }
 
       .import-button {
@@ -206,6 +312,18 @@
         height: 190px;
       }
 
+      .reader-header {
+        padding: 0 10px;
+      }
+
+      .reader-title {
+        font-size: 14px;
+      }
+
+      .navigation-button {
+        padding: 10px 20px;
+      }
+
     }
 
   </style>
@@ -213,6 +331,11 @@
 
 
 <body>
+
+
+  <!-- ============================
+       LIBRARY
+  ============================ -->
 
   <header>
 
@@ -275,12 +398,76 @@
         class="empty-library"
         id="emptyLibrary"
       >
-        Your library is empty. Import an EPUB to begin.
+        Your library is empty.
+        Import an EPUB to begin.
       </p>
 
     </section>
 
   </main>
+
+
+
+  <!-- ============================
+       READER
+  ============================ -->
+
+  <div id="readerScreen">
+
+    <div class="reader-header">
+
+      <button
+        class="reader-button"
+        id="closeReader"
+      >
+        ← Library
+      </button>
+
+
+      <div
+        class="reader-title"
+        id="readerTitle"
+      >
+        Book
+      </div>
+
+
+      <div style="width: 80px;"></div>
+
+    </div>
+
+
+    <div id="viewer"></div>
+
+
+    <div class="reader-controls">
+
+      <button
+        class="navigation-button"
+        id="previousPage"
+      >
+        ‹ Previous
+      </button>
+
+
+      <button
+        class="navigation-button"
+        id="nextPage"
+      >
+        Next ›
+      </button>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- EPUB.JS -->
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js">
+  </script>
 
 
   <script>
@@ -301,27 +488,54 @@
       document.getElementById("searchInput");
 
 
+    const readerScreen =
+      document.getElementById("readerScreen");
+
+    const readerTitle =
+      document.getElementById("readerTitle");
+
+    const closeReader =
+      document.getElementById("closeReader");
+
+    const previousPage =
+      document.getElementById("previousPage");
+
+    const nextPage =
+      document.getElementById("nextPage");
+
+
     let db;
 
     let allBooks = [];
 
+    let currentEpubBook = null;
 
-    // =============================
-    // OPEN INDEXEDDB DATABASE
-    // =============================
+    let currentRendition = null;
+
+
+
+    // ============================
+    // OPEN DATABASE
+    // ============================
 
     const databaseRequest =
-      indexedDB.open("ebookLibrary", 1);
+      indexedDB.open(
+        "ebookLibrary",
+        1
+      );
 
 
     databaseRequest.onupgradeneeded =
       function(event) {
 
-        db = event.target.result;
+        db =
+          event.target.result;
 
 
         if (
-          !db.objectStoreNames.contains("books")
+          !db.objectStoreNames.contains(
+            "books"
+          )
         ) {
 
           db.createObjectStore(
@@ -340,9 +554,11 @@
     databaseRequest.onsuccess =
       function(event) {
 
-        db = event.target.result;
+        db =
+          event.target.result;
 
-        importButton.disabled = false;
+        importButton.disabled =
+          false;
 
         loadBooks();
 
@@ -350,47 +566,29 @@
 
 
     databaseRequest.onerror =
-      function(event) {
-
-        console.error(
-          "Database error:",
-          event.target.error
-        );
+      function() {
 
         alert(
-          "Could not open the ebook database."
+          "Could not open ebook database."
         );
 
       };
 
 
-    // =============================
-    // IMPORT BUTTON
-    // =============================
+
+    // ============================
+    // IMPORT EPUB
+    // ============================
 
     importButton.addEventListener(
       "click",
       function() {
-
-        if (!db) {
-
-          alert(
-            "The library is still loading. Please wait a moment."
-          );
-
-          return;
-
-        }
 
         epubInput.click();
 
       }
     );
 
-
-    // =============================
-    // EPUB SELECTED
-    // =============================
 
     epubInput.addEventListener(
       "change",
@@ -428,22 +626,12 @@
     );
 
 
-    // =============================
-    // SAVE EPUB
-    // =============================
+
+    // ============================
+    // SAVE BOOK
+    // ============================
 
     function saveBook(file) {
-
-      if (!db) {
-
-        alert(
-          "The library database is not ready."
-        );
-
-        return;
-
-      }
-
 
       const transaction =
         db.transaction(
@@ -453,7 +641,9 @@
 
 
       const store =
-        transaction.objectStore("books");
+        transaction.objectStore(
+          "books"
+        );
 
 
       const book = {
@@ -476,11 +666,11 @@
       };
 
 
-      const addRequest =
+      const request =
         store.add(book);
 
 
-      addRequest.onsuccess =
+      request.onsuccess =
         function() {
 
           epubInput.value = "";
@@ -490,13 +680,8 @@
         };
 
 
-      addRequest.onerror =
-        function(event) {
-
-          console.error(
-            "Save error:",
-            event.target.error
-          );
+      request.onerror =
+        function() {
 
           alert(
             "Could not save this book."
@@ -507,9 +692,10 @@
     }
 
 
-    // =============================
+
+    // ============================
     // LOAD BOOKS
-    // =============================
+    // ============================
 
     function loadBooks() {
 
@@ -521,45 +707,36 @@
 
 
       const store =
-        transaction.objectStore("books");
+        transaction.objectStore(
+          "books"
+        );
 
 
-      const getRequest =
+      const request =
         store.getAll();
 
 
-      getRequest.onsuccess =
+      request.onsuccess =
         function() {
 
           allBooks =
-            getRequest.result || [];
+            request.result || [];
 
 
           allBooks.sort(
             function(a, b) {
 
-              return new Date(b.added) -
-                     new Date(a.added);
+              return (
+                new Date(b.added) -
+                new Date(a.added)
+              );
 
             }
           );
 
 
-          displayBooks(allBooks);
-
-        };
-
-
-      getRequest.onerror =
-        function(event) {
-
-          console.error(
-            "Load error:",
-            event.target.error
-          );
-
-          alert(
-            "Could not load your books."
+          displayBooks(
+            allBooks
           );
 
         };
@@ -567,16 +744,20 @@
     }
 
 
-    // =============================
+
+    // ============================
     // DISPLAY BOOKS
-    // =============================
+    // ============================
 
     function displayBooks(books) {
 
-      bookGrid.innerHTML = "";
+      bookGrid.innerHTML =
+        "";
 
 
-      if (books.length === 0) {
+      if (
+        books.length === 0
+      ) {
 
         emptyLibrary.style.display =
           "block";
@@ -594,7 +775,9 @@
         function(book) {
 
           const bookElement =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
 
           bookElement.className =
@@ -612,10 +795,22 @@
             </h3>
 
             <p>
-              EPUB Book
+              Click to read
             </p>
 
           `;
+
+
+          // OPEN BOOK WHEN CLICKED
+
+          bookElement.addEventListener(
+            "click",
+            function() {
+
+              openBook(book);
+
+            }
+          );
 
 
           bookGrid.appendChild(
@@ -628,9 +823,244 @@
     }
 
 
-    // =============================
-    // SEARCH BOOKS
-    // =============================
+
+    // ============================
+    // OPEN EPUB
+    // ============================
+
+    async function openBook(book) {
+
+      try {
+
+        readerScreen.style.display =
+          "flex";
+
+
+        readerTitle.textContent =
+          book.title;
+
+
+        document.body.style.overflow =
+          "hidden";
+
+
+        document.getElementById(
+          "viewer"
+        ).innerHTML = "";
+
+
+        const arrayBuffer =
+          await book.file.arrayBuffer();
+
+
+        currentEpubBook =
+          ePub(arrayBuffer);
+
+
+        currentRendition =
+          currentEpubBook.renderTo(
+            "viewer",
+            {
+              width: "100%",
+              height: "100%",
+
+              spread: "auto",
+
+              flow: "paginated"
+            }
+          );
+
+
+        currentRendition.themes.default({
+
+          body: {
+            "font-family":
+              "Georgia, serif",
+
+            "line-height":
+              "1.6",
+
+            "padding":
+              "0 5%"
+          }
+
+        });
+
+
+        await currentRendition.display();
+
+
+      }
+
+      catch(error) {
+
+        console.error(
+          error
+        );
+
+
+        alert(
+          "This EPUB could not be opened."
+        );
+
+
+        closeBookReader();
+
+      }
+
+    }
+
+
+
+    // ============================
+    // NEXT PAGE
+    // ============================
+
+    nextPage.addEventListener(
+      "click",
+      function() {
+
+        if (
+          currentRendition
+        ) {
+
+          currentRendition.next();
+
+        }
+
+      }
+    );
+
+
+
+    // ============================
+    // PREVIOUS PAGE
+    // ============================
+
+    previousPage.addEventListener(
+      "click",
+      function() {
+
+        if (
+          currentRendition
+        ) {
+
+          currentRendition.prev();
+
+        }
+
+      }
+    );
+
+
+
+    // ============================
+    // CLOSE READER
+    // ============================
+
+    closeReader.addEventListener(
+      "click",
+      closeBookReader
+    );
+
+
+    function closeBookReader() {
+
+      readerScreen.style.display =
+        "none";
+
+
+      document.body.style.overflow =
+        "";
+
+
+      if (
+        currentRendition
+      ) {
+
+        currentRendition.destroy();
+
+        currentRendition =
+          null;
+
+      }
+
+
+      if (
+        currentEpubBook
+      ) {
+
+        currentEpubBook.destroy();
+
+        currentEpubBook =
+          null;
+
+      }
+
+
+      document.getElementById(
+        "viewer"
+      ).innerHTML = "";
+
+    }
+
+
+
+    // ============================
+    // KEYBOARD CONTROLS
+    // ============================
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (
+          readerScreen.style.display
+          !== "flex"
+        ) {
+
+          return;
+
+        }
+
+
+        if (
+          event.key ===
+          "ArrowRight"
+        ) {
+
+          currentRendition?.next();
+
+        }
+
+
+        if (
+          event.key ===
+          "ArrowLeft"
+        ) {
+
+          currentRendition?.prev();
+
+        }
+
+
+        if (
+          event.key ===
+          "Escape"
+        ) {
+
+          closeBookReader();
+
+        }
+
+      }
+    );
+
+
+
+    // ============================
+    // SEARCH
+    // ============================
 
     searchInput.addEventListener(
       "input",
@@ -644,7 +1074,9 @@
 
         if (!searchTerm) {
 
-          displayBooks(allBooks);
+          displayBooks(
+            allBooks
+          );
 
           return;
 
@@ -657,28 +1089,36 @@
 
               return book.title
                 .toLowerCase()
-                .includes(searchTerm);
+                .includes(
+                  searchTerm
+                );
 
             }
           );
 
 
-        displayBooks(filteredBooks);
+        displayBooks(
+          filteredBooks
+        );
 
       }
     );
 
 
-    // =============================
+
+    // ============================
     // SECURITY
-    // =============================
+    // ============================
 
     function escapeHTML(text) {
 
       const div =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
-      div.textContent = text;
+      div.textContent =
+        text;
 
       return div.innerHTML;
 
