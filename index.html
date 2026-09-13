@@ -161,29 +161,26 @@
 
       <h2>My Books</h2>
 
-      <button class="import-button">
-        + Import EPUB
+     <button class="import-button" id="importButton">
+  + Import EPUB
+</button>
+
+<input
+  type="file"
+  id="epubInput"
+  accept=".epub,application/epub+zip"
+  hidden
+>
       </button>
 
     </div>
 
 
-    <div class="book-grid">
+<div class="book-grid" id="bookGrid"></div>
 
-      <div class="book">
-
-        <div class="cover">
-          📖
-        </div>
-
-        <h3>Example Book</h3>
-
-        <p>Your library is ready.</p>
-
-      </div>
-
-    </div>
-
+<p class="empty-library" id="emptyLibrary">
+  Your library is empty. Import an EPUB to begin.
+</p>
 
   </section>
 
@@ -191,4 +188,202 @@
 
 
 </body>
-</html>
+<script>
+
+const importButton = document.getElementById("importButton");
+const epubInput = document.getElementById("epubInput");
+const bookGrid = document.getElementById("bookGrid");
+const emptyLibrary = document.getElementById("emptyLibrary");
+
+let db;
+
+
+// OPEN DATABASE
+const request = indexedDB.open("ebookLibrary", 1);
+
+request.onupgradeneeded = function(event) {
+
+  db = event.target.result;
+
+  if (!db.objectStoreNames.contains("books")) {
+
+    db.createObjectStore("books", {
+      keyPath: "id",
+      autoIncrement: true
+    });
+
+  }
+
+};
+
+
+request.onsuccess = function(event) {
+
+  db = event.target.result;
+
+  loadBooks();
+
+};
+
+
+request.onerror = function() {
+
+  alert("Could not open ebook database.");
+
+};
+
+
+// IMPORT BUTTON
+importButton.addEventListener("click", function() {
+
+  epubInput.click();
+
+});
+
+
+// FILE SELECTED
+epubInput.addEventListener("change", function(event) {
+
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+
+  if (!file.name.toLowerCase().endsWith(".epub")) {
+
+    alert("Please choose an EPUB file.");
+
+    return;
+
+  }
+
+
+  saveBook(file);
+
+});
+
+
+// SAVE BOOK
+function saveBook(file) {
+
+  const transaction = db.transaction(
+    ["books"],
+    "readwrite"
+  );
+
+  const store = transaction.objectStore("books");
+
+
+  const book = {
+
+    title: file.name.replace(/\.epub$/i, ""),
+
+    filename: file.name,
+
+    file: file,
+
+    added: new Date().toISOString()
+
+  };
+
+
+  const request = store.add(book);
+
+
+  request.onsuccess = function() {
+
+    epubInput.value = "";
+
+    loadBooks();
+
+  };
+
+
+  request.onerror = function() {
+
+    alert("Could not save this book.");
+
+  };
+
+}
+
+
+// LOAD LIBRARY
+function loadBooks() {
+
+  const transaction = db.transaction(
+    ["books"],
+    "readonly"
+  );
+
+  const store = transaction.objectStore("books");
+
+  const request = store.getAll();
+
+
+  request.onsuccess = function() {
+
+    displayBooks(request.result);
+
+  };
+
+}
+
+
+// DISPLAY BOOKS
+function displayBooks(books) {
+
+  bookGrid.innerHTML = "";
+
+
+  if (books.length === 0) {
+
+    emptyLibrary.style.display = "block";
+
+    return;
+
+  }
+
+
+  emptyLibrary.style.display = "none";
+
+
+  books.forEach(function(book) {
+
+    const bookElement = document.createElement("div");
+
+    bookElement.className = "book";
+
+
+    bookElement.innerHTML = `
+
+      <div class="cover">
+        📖
+      </div>
+
+      <h3>${escapeHTML(book.title)}</h3>
+
+      <p>EPUB Book</p>
+
+    `;
+
+
+    bookGrid.appendChild(bookElement);
+
+  });
+
+}
+
+
+// SECURITY
+function escapeHTML(text) {
+
+  const div = document.createElement("div");
+
+  div.textContent = text;
+
+  return div.innerHTML;
+
+}
+
+</script>
