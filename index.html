@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>My Ebook Library</title>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
@@ -26,6 +32,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+
+      gap: 20px;
     }
 
     header h1 {
@@ -38,6 +46,11 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       width: 220px;
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: #777;
     }
 
     main {
@@ -63,6 +76,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 20px;
       margin-bottom: 20px;
     }
 
@@ -76,6 +90,17 @@
 
       cursor: pointer;
       font-size: 14px;
+
+      transition: 0.2s;
+    }
+
+    .import-button:hover {
+      background: #444;
+    }
+
+    .import-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .book-grid {
@@ -93,7 +118,18 @@
       border-radius: 12px;
 
       box-shadow:
-        0 3px 10px rgba(0,0,0,0.08);
+        0 3px 10px rgba(0, 0, 0, 0.08);
+
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+    }
+
+    .book:hover {
+      transform: translateY(-3px);
+
+      box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.12);
     }
 
     .cover {
@@ -111,6 +147,8 @@
     .book h3 {
       margin: 12px 0 5px;
       font-size: 16px;
+
+      overflow-wrap: anywhere;
     }
 
     .book p {
@@ -123,267 +161,531 @@
       color: #777;
       margin-top: 20px;
     }
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 15px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      header h1 {
+        text-align: center;
+      }
+
+      .search {
+        width: 100%;
+      }
+
+      main {
+        padding: 20px 15px;
+      }
+
+      .hero h2 {
+        font-size: 26px;
+      }
+
+      .library-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .import-button {
+        width: 100%;
+      }
+
+      .book-grid {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+
+        gap: 15px;
+      }
+
+      .cover {
+        height: 190px;
+      }
+
+    }
+
   </style>
 </head>
 
 
 <body>
 
-<header>
+  <header>
 
-  <h1>📚 My Library</h1>
+    <h1>📚 My Library</h1>
 
-  <input
-    class="search"
-    type="search"
-    placeholder="Search books..."
-  >
+    <input
+      class="search"
+      id="searchInput"
+      type="search"
+      placeholder="Search books..."
+    >
 
-</header>
+  </header>
 
 
-<main>
+  <main>
 
-  <section class="hero">
+    <section class="hero">
 
-    <h2>Your personal ebook library.</h2>
+      <h2>Your personal ebook library.</h2>
 
-    <p>
-      Read and organize your EPUB books in one place.
-    </p>
+      <p>
+        Read and organize your EPUB books in one place.
+      </p>
 
-  </section>
+    </section>
 
 
-  <section>
+    <section>
 
-    <div class="library-header">
+      <div class="library-header">
 
-      <h2>My Books</h2>
+        <h2>My Books</h2>
 
-     <button class="import-button" id="importButton">
-  + Import EPUB
-</button>
+        <button
+          class="import-button"
+          id="importButton"
+          disabled
+        >
+          + Import EPUB
+        </button>
 
-<input
-  type="file"
-  id="epubInput"
-  accept=".epub,application/epub+zip"
-  hidden
->
-      </button>
+        <input
+          type="file"
+          id="epubInput"
+          accept=".epub,application/epub+zip"
+          hidden
+        >
 
-    </div>
-
-
-<div class="book-grid" id="bookGrid"></div>
-
-<p class="empty-library" id="emptyLibrary">
-  Your library is empty. Import an EPUB to begin.
-</p>
-
-  </section>
-
-</main>
-
-
-</body>
-<script>
-
-const importButton = document.getElementById("importButton");
-const epubInput = document.getElementById("epubInput");
-const bookGrid = document.getElementById("bookGrid");
-const emptyLibrary = document.getElementById("emptyLibrary");
-
-let db;
-
-
-// OPEN DATABASE
-const request = indexedDB.open("ebookLibrary", 1);
-
-request.onupgradeneeded = function(event) {
-
-  db = event.target.result;
-
-  if (!db.objectStoreNames.contains("books")) {
-
-    db.createObjectStore("books", {
-      keyPath: "id",
-      autoIncrement: true
-    });
-
-  }
-
-};
-
-
-request.onsuccess = function(event) {
-
-  db = event.target.result;
-
-  loadBooks();
-
-};
-
-
-request.onerror = function() {
-
-  alert("Could not open ebook database.");
-
-};
-
-
-// IMPORT BUTTON
-importButton.addEventListener("click", function() {
-
-  epubInput.click();
-
-});
-
-
-// FILE SELECTED
-epubInput.addEventListener("change", function(event) {
-
-  const file = event.target.files[0];
-
-  if (!file) return;
-
-
-  if (!file.name.toLowerCase().endsWith(".epub")) {
-
-    alert("Please choose an EPUB file.");
-
-    return;
-
-  }
-
-
-  saveBook(file);
-
-});
-
-
-// SAVE BOOK
-function saveBook(file) {
-
-  const transaction = db.transaction(
-    ["books"],
-    "readwrite"
-  );
-
-  const store = transaction.objectStore("books");
-
-
-  const book = {
-
-    title: file.name.replace(/\.epub$/i, ""),
-
-    filename: file.name,
-
-    file: file,
-
-    added: new Date().toISOString()
-
-  };
-
-
-  const request = store.add(book);
-
-
-  request.onsuccess = function() {
-
-    epubInput.value = "";
-
-    loadBooks();
-
-  };
-
-
-  request.onerror = function() {
-
-    alert("Could not save this book.");
-
-  };
-
-}
-
-
-// LOAD LIBRARY
-function loadBooks() {
-
-  const transaction = db.transaction(
-    ["books"],
-    "readonly"
-  );
-
-  const store = transaction.objectStore("books");
-
-  const request = store.getAll();
-
-
-  request.onsuccess = function() {
-
-    displayBooks(request.result);
-
-  };
-
-}
-
-
-// DISPLAY BOOKS
-function displayBooks(books) {
-
-  bookGrid.innerHTML = "";
-
-
-  if (books.length === 0) {
-
-    emptyLibrary.style.display = "block";
-
-    return;
-
-  }
-
-
-  emptyLibrary.style.display = "none";
-
-
-  books.forEach(function(book) {
-
-    const bookElement = document.createElement("div");
-
-    bookElement.className = "book";
-
-
-    bookElement.innerHTML = `
-
-      <div class="cover">
-        📖
       </div>
 
-      <h3>${escapeHTML(book.title)}</h3>
 
-      <p>EPUB Book</p>
-
-    `;
-
-
-    bookGrid.appendChild(bookElement);
-
-  });
-
-}
+      <div
+        class="book-grid"
+        id="bookGrid"
+      ></div>
 
 
-// SECURITY
-function escapeHTML(text) {
+      <p
+        class="empty-library"
+        id="emptyLibrary"
+      >
+        Your library is empty. Import an EPUB to begin.
+      </p>
 
-  const div = document.createElement("div");
+    </section>
 
-  div.textContent = text;
+  </main>
 
-  return div.innerHTML;
 
-}
+  <script>
 
-</script>
+    const importButton =
+      document.getElementById("importButton");
+
+    const epubInput =
+      document.getElementById("epubInput");
+
+    const bookGrid =
+      document.getElementById("bookGrid");
+
+    const emptyLibrary =
+      document.getElementById("emptyLibrary");
+
+    const searchInput =
+      document.getElementById("searchInput");
+
+
+    let db;
+
+    let allBooks = [];
+
+
+    // =============================
+    // OPEN INDEXEDDB DATABASE
+    // =============================
+
+    const databaseRequest =
+      indexedDB.open("ebookLibrary", 1);
+
+
+    databaseRequest.onupgradeneeded =
+      function(event) {
+
+        db = event.target.result;
+
+
+        if (
+          !db.objectStoreNames.contains("books")
+        ) {
+
+          db.createObjectStore(
+            "books",
+            {
+              keyPath: "id",
+              autoIncrement: true
+            }
+          );
+
+        }
+
+      };
+
+
+    databaseRequest.onsuccess =
+      function(event) {
+
+        db = event.target.result;
+
+        importButton.disabled = false;
+
+        loadBooks();
+
+      };
+
+
+    databaseRequest.onerror =
+      function(event) {
+
+        console.error(
+          "Database error:",
+          event.target.error
+        );
+
+        alert(
+          "Could not open the ebook database."
+        );
+
+      };
+
+
+    // =============================
+    // IMPORT BUTTON
+    // =============================
+
+    importButton.addEventListener(
+      "click",
+      function() {
+
+        if (!db) {
+
+          alert(
+            "The library is still loading. Please wait a moment."
+          );
+
+          return;
+
+        }
+
+        epubInput.click();
+
+      }
+    );
+
+
+    // =============================
+    // EPUB SELECTED
+    // =============================
+
+    epubInput.addEventListener(
+      "change",
+      function(event) {
+
+        const file =
+          event.target.files[0];
+
+
+        if (!file) {
+          return;
+        }
+
+
+        if (
+          !file.name
+            .toLowerCase()
+            .endsWith(".epub")
+        ) {
+
+          alert(
+            "Please choose an EPUB file."
+          );
+
+          epubInput.value = "";
+
+          return;
+
+        }
+
+
+        saveBook(file);
+
+      }
+    );
+
+
+    // =============================
+    // SAVE EPUB
+    // =============================
+
+    function saveBook(file) {
+
+      if (!db) {
+
+        alert(
+          "The library database is not ready."
+        );
+
+        return;
+
+      }
+
+
+      const transaction =
+        db.transaction(
+          ["books"],
+          "readwrite"
+        );
+
+
+      const store =
+        transaction.objectStore("books");
+
+
+      const book = {
+
+        title:
+          file.name.replace(
+            /\.epub$/i,
+            ""
+          ),
+
+        filename:
+          file.name,
+
+        file:
+          file,
+
+        added:
+          new Date().toISOString()
+
+      };
+
+
+      const addRequest =
+        store.add(book);
+
+
+      addRequest.onsuccess =
+        function() {
+
+          epubInput.value = "";
+
+          loadBooks();
+
+        };
+
+
+      addRequest.onerror =
+        function(event) {
+
+          console.error(
+            "Save error:",
+            event.target.error
+          );
+
+          alert(
+            "Could not save this book."
+          );
+
+        };
+
+    }
+
+
+    // =============================
+    // LOAD BOOKS
+    // =============================
+
+    function loadBooks() {
+
+      const transaction =
+        db.transaction(
+          ["books"],
+          "readonly"
+        );
+
+
+      const store =
+        transaction.objectStore("books");
+
+
+      const getRequest =
+        store.getAll();
+
+
+      getRequest.onsuccess =
+        function() {
+
+          allBooks =
+            getRequest.result || [];
+
+
+          allBooks.sort(
+            function(a, b) {
+
+              return new Date(b.added) -
+                     new Date(a.added);
+
+            }
+          );
+
+
+          displayBooks(allBooks);
+
+        };
+
+
+      getRequest.onerror =
+        function(event) {
+
+          console.error(
+            "Load error:",
+            event.target.error
+          );
+
+          alert(
+            "Could not load your books."
+          );
+
+        };
+
+    }
+
+
+    // =============================
+    // DISPLAY BOOKS
+    // =============================
+
+    function displayBooks(books) {
+
+      bookGrid.innerHTML = "";
+
+
+      if (books.length === 0) {
+
+        emptyLibrary.style.display =
+          "block";
+
+        return;
+
+      }
+
+
+      emptyLibrary.style.display =
+        "none";
+
+
+      books.forEach(
+        function(book) {
+
+          const bookElement =
+            document.createElement("div");
+
+
+          bookElement.className =
+            "book";
+
+
+          bookElement.innerHTML = `
+
+            <div class="cover">
+              📖
+            </div>
+
+            <h3>
+              ${escapeHTML(book.title)}
+            </h3>
+
+            <p>
+              EPUB Book
+            </p>
+
+          `;
+
+
+          bookGrid.appendChild(
+            bookElement
+          );
+
+        }
+      );
+
+    }
+
+
+    // =============================
+    // SEARCH BOOKS
+    // =============================
+
+    searchInput.addEventListener(
+      "input",
+      function() {
+
+        const searchTerm =
+          searchInput.value
+            .trim()
+            .toLowerCase();
+
+
+        if (!searchTerm) {
+
+          displayBooks(allBooks);
+
+          return;
+
+        }
+
+
+        const filteredBooks =
+          allBooks.filter(
+            function(book) {
+
+              return book.title
+                .toLowerCase()
+                .includes(searchTerm);
+
+            }
+          );
+
+
+        displayBooks(filteredBooks);
+
+      }
+    );
+
+
+    // =============================
+    // SECURITY
+    // =============================
+
+    function escapeHTML(text) {
+
+      const div =
+        document.createElement("div");
+
+      div.textContent = text;
+
+      return div.innerHTML;
+
+    }
+
+  </script>
+
+</body>
+
+</html>
