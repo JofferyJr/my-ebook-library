@@ -1,0 +1,47 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+>
+
+  <rect
+    width="512"
+    height="512"
+    rx="105"
+    fill="#222222"
+  />
+
+  <path
+    d="
+      M78 118
+      Q165 90 240 140
+      V405
+      Q165 355 78 385
+      Z
+    "
+    fill="#ffffff"
+  />
+
+  <path
+    d="
+      M434 118
+      Q347 90 272 140
+      V405
+      Q347 355 434 385
+      Z
+    "
+    fill="#ffffff"
+  />
+
+  <path
+    d="
+      M256 143
+      V405
+    "
+    stroke="#999999"
+    stroke-width="14"
+    stroke-linecap="round"
+  />
+
+</svg>
