@@ -1,0 +1,19 @@
+{
+  "name": "My Ebook Library",
+  "short_name": "My Library",
+  "description": "A private offline EPUB library and ebook reader",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ed",
+  "theme_color": "#222222",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
