@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Ebook Library</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f4ef;
+      color: #222;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 20px 30px;
+      border-bottom: 1px solid #ddd;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .search {
+      padding: 10px 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 220px;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 30px;
+    }
+
+    .hero {
+      margin-bottom: 30px;
+    }
+
+    .hero h2 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      color: #666;
+    }
+
+    .library-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .import-button {
+      border: none;
+      background: #222;
+      color: white;
+
+      padding: 12px 18px;
+      border-radius: 8px;
+
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .book-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(auto-fill, minmax(150px, 1fr));
+
+      gap: 25px;
+    }
+
+    .book {
+      background: white;
+      padding: 12px;
+      border-radius: 12px;
+
+      box-shadow:
+        0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .cover {
+      background: #ddd;
+      height: 220px;
+      border-radius: 8px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 50px;
+    }
+
+    .book h3 {
+      margin: 12px 0 5px;
+      font-size: 16px;
+    }
+
+    .book p {
+      margin: 0;
+      color: #777;
+      font-size: 13px;
+    }
+
+    .empty-library {
+      color: #777;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+
+<body>
+
+<header>
+
+  <h1>📚 My Library</h1>
+
+  <input
+    class="search"
+    type="search"
+    placeholder="Search books..."
+  >
+
+</header>
+
+
+<main>
+
+  <section class="hero">
+
+    <h2>Your personal ebook library.</h2>
+
+    <p>
+      Read and organize your EPUB books in one place.
+    </p>
+
+  </section>
+
+
+  <section>
+
+    <div class="library-header">
+
+      <h2>My Books</h2>
+
+      <button class="import-button">
+        + Import EPUB
+      </button>
+
+    </div>
+
+
+    <div class="book-grid">
+
+      <div class="book">
+
+        <div class="cover">
+          📖
+        </div>
+
+        <h3>Example Book</h3>
+
+        <p>Your library is ready.</p>
+
+      </div>
+
+    </div>
+
+
+  </section>
+
+</main>
+
+
+</body>
+</html>
